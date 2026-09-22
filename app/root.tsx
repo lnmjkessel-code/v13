@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
+        <SpeedInsights />
       </body>
     </html>
   );
