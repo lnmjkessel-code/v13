@@ -1,3 +1,54 @@
+# V13 Outlaw Toolkit — Shopify app (React Router)
+
+Built on Shopify's official `shopify-app-template-react-router`. Embedded admin UI uses
+**Polaris Web Components** + **App Bridge**; extras ship as **app extensions** and a **Shopify Function**.
+
+| Phase | What | Where |
+|---|---|---|
+| 1 | Digital product delivery: private, expiring, download-limited links written onto paid orders | `app/routes/app.digital.tsx`, `webhooks.orders.paid.tsx`, `download.$token.tsx`, `prisma/` |
+| 2 | Fight Camp bundle discount (automatic, % off when N+ products tagged `fight-camp`) | `extensions/v13-fight-camp-bundle`, `app/routes/app.bundles.tsx` |
+| 3a | Size & fit guide (theme app block, EN/ES) | `extensions/v13-size-guide` |
+| 3b | Checkout upsell (checkout UI extension, EN/ES) | `extensions/v13-checkout-upsell` |
+
+## Deploy / run (Node >= 22.12, a Partner account, a dev store)
+
+```bash
+npm install
+npm run config:link            # creates/links the app, fills client_id in shopify.app.toml
+npm run setup                  # prisma generate + migrate (creates the 2 new tables)
+
+# Function schema (one time, needs the linked app)
+npx shopify app function schema --path extensions/v13-fight-camp-bundle
+npx shopify app function typegen --path extensions/v13-fight-camp-bundle
+
+npm run dev                    # tunnel + dev store install. Approve the new scopes.
+npm run deploy                 # ships extensions + config to Shopify
+```
+
+For production hosting (Fly.io / Heroku / anywhere that runs the Dockerfile): swap SQLite in
+`prisma/schema.prisma` for Postgres/MySQL, set `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`,
+`SHOPIFY_APP_URL`, `SCOPES`, `DATABASE_URL`, then `npm run docker-start`.
+
+## Using it
+
+1. **Digital Products** → choose a product, paste an `https://` file URL (S3/R2/Dropbox/Shopify Files), set limits.
+   When an order is paid, the order note gets `V13 DOWNLOADS` + links, and the order is tagged `v13-digital`.
+   Add `{{ note }}` to the *Order confirmation* email template to send them.
+2. **Bundles** → tag products `fight-camp`, then create the discount (min items + percent).
+3. **Storefront Tools** → add the size guide block in the theme editor; add *V13 Checkout Upsell* in the checkout editor and pick a variant.
+
+## Known limits / honest notes
+
+- Not run end-to-end against a live store (needs your Partner login). TypeScript typecheck passes except where Prisma's client wasn't generable offline; `npm run setup` fixes that.
+- `orders/paid` webhooks include customer data. Dev stores are fine; for App Store distribution, request **Protected customer data** access in the Partner Dashboard.
+- The discount Function targets API `2025-10` (`cart.lines.discounts.generate.run`). If `functionHandle` is rejected on your CLI version, run `npx shopify app function schema` first, or check `shopify app generate extension` for the current template.
+- Tag name `fight-camp` is hard-wired in the Function's input query (GraphQL can't take a dynamic tag).
+- Download links hit your app server; for big files, point `fileUrl` at a signed/CDN URL.
+
+---
+
+# Original template README
+
 # Shopify App Template - React Router
 
 This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using [React Router](https://reactrouter.com/). It was forked from the [Shopify Remix app template](https://github.com/Shopify/shopify-app-template-remix) and converted to React Router.

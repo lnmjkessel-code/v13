@@ -16,10 +16,12 @@ export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
+    <AppProvider apiKey={apiKey}>
       <s-app-nav>
-        <s-link href="/app">Home</s-link>
-        <s-link href="/app/additional">Additional page</s-link>
+        <s-link href="/app">Command Center</s-link>
+        <s-link href="/app/digital">Digital Products</s-link>
+        <s-link href="/app/bundles">Fight Camp Bundles</s-link>
+        <s-link href="/app/storefront">Storefront Tools</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>

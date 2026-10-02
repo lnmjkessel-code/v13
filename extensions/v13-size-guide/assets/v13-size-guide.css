@@ -1,0 +1,13 @@
+.v13-sg { margin: 1.5rem 0; font-family: inherit; }
+.v13-sg__toggle {
+  background: #0b0b0b; color: #f2f2f2; border: 1px solid #8a0f0f;
+  padding: .75rem 1.25rem; letter-spacing: .12em; font-weight: 700;
+  text-transform: uppercase; cursor: pointer;
+}
+.v13-sg__toggle:hover { background: #8a0f0f; }
+.v13-sg__panel { margin-top: 1rem; padding: 1rem; border: 1px solid #333; background: #111; color: #eee; }
+.v13-sg__panel[hidden] { display: none; }
+.v13-sg table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.v13-sg th, .v13-sg td { padding: .5rem; border-bottom: 1px solid #2a2a2a; text-align: center; }
+.v13-sg th { color: #c1272d; text-transform: uppercase; letter-spacing: .08em; }
+.v13-sg__note { margin: .75rem 0 0; font-size: .85rem; opacity: .8; }

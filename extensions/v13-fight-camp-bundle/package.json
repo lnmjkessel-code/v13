@@ -1,0 +1,12 @@
+{
+  "name": "v13-fight-camp-bundle",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "typegen": "shopify app function typegen"
+  },
+  "dependencies": {
+    "@shopify/shopify_function": "~2.0.0"
+  }
+}

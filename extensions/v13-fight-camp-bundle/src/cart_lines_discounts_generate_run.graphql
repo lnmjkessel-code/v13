@@ -1,0 +1,23 @@
+query CartLinesDiscountsGenerateRunInput {
+  cart {
+    lines {
+      id
+      quantity
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          product {
+            id
+            hasAnyTag(tags: ["fight-camp"])
+          }
+        }
+      }
+    }
+  }
+  discount {
+    discountClasses
+    metafield(namespace: "$app:bundle", key: "config") {
+      jsonValue
+    }
+  }
+}

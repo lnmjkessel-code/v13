@@ -7,7 +7,7 @@ embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_products,write_products,read_orders,write_orders,read_discounts,write_discounts"
 
 [webhooks]
 api_version = "2026-10"
@@ -19,6 +19,16 @@ api_version = "2026-10"
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
   topics = [ "app/scopes_update" ]
+
+  # Phase 1: digital delivery. Handled by /app/routes/webhooks.orders.paid.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "orders/paid" ]
+  uri = "/webhooks/orders/paid"
+
+  # Mandatory compliance topics (required for App Store distribution)
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
