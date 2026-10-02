@@ -1,0 +1,16 @@
+api_version = "2025-10"
+
+[[extensions]]
+name = "V13 Fight Camp Bundle"
+handle = "v13-fight-camp-bundle"
+type = "function"
+description = "Automatic percentage discount when a cart holds enough fight-camp tagged products."
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

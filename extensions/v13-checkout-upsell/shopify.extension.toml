@@ -1,0 +1,25 @@
+api_version = "2025-10"
+
+[[extensions]]
+name = "V13 Checkout Upsell"
+handle = "v13-checkout-upsell"
+type = "ui_extension"
+description = "One-tap add-on offer at checkout."
+
+  [[extensions.targeting]]
+  module = "./src/Checkout.jsx"
+  target = "purchase.checkout.block.render"
+
+  [extensions.capabilities]
+  api_access = true
+
+  [[extensions.settings.fields]]
+  key = "upsell_variant"
+  type = "variant_reference"
+  name = "Product variant to offer"
+  description = "Wraps, a program, a sticker pack. One variant."
+
+  [[extensions.settings.fields]]
+  key = "headline"
+  type = "single_line_text_field"
+  name = "Headline override (optional)"

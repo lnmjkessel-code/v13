@@ -32,3 +32,40 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+// ─── V13 Outlaw Fightwear ────────────────────────────────────────────────
+
+/// A downloadable file (training program, guide, etc.) attached to a Shopify product.
+model DigitalAsset {
+  id          String          @id @default(cuid())
+  shop        String
+  productId   String // gid://shopify/Product/123
+  title       String
+  description String?
+  fileUrl     String // Where the real file lives (S3/R2/Dropbox/Shopify Files)
+  maxDownloads Int            @default(5)
+  expiryDays  Int             @default(30)
+  createdAt   DateTime        @default(now())
+  grants      DownloadGrant[]
+
+  @@index([shop])
+  @@index([shop, productId])
+}
+
+/// One customer's right to download one asset, created when an order is paid.
+model DownloadGrant {
+  id            String       @id @default(cuid())
+  token         String       @unique
+  shop          String
+  orderId       String // gid://shopify/Order/123
+  orderName     String?
+  assetId       String
+  asset         DigitalAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  downloadsUsed Int          @default(0)
+  maxDownloads  Int
+  expiresAt     DateTime
+  createdAt     DateTime     @default(now())
+
+  @@unique([orderId, assetId])
+  @@index([shop])
+}

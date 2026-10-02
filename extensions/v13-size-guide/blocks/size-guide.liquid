@@ -1,0 +1,68 @@
+{{ 'v13-size-guide.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign chart = block.settings.chart
+  if chart == 'shorts'
+    assign rows = 'S|71-76|88-93,M|76-81|93-98,L|81-86|98-103,XL|86-91|103-108,XXL|91-97|108-114'
+    assign col_a = 'waist'
+    assign col_b = 'hip'
+  else
+    assign rows = 'S|88-94,M|94-100,L|100-108,XL|108-116,XXL|116-124'
+    assign col_a = 'chest'
+    assign col_b = ''
+  endif
+  assign rows_list = rows | split: ','
+-%}
+
+<div class="v13-sg" id="v13-sg-{{ block.id }}" {{ block.shopify_attributes }}>
+  <button class="v13-sg__toggle" type="button"
+          aria-expanded="false" aria-controls="v13-sg-panel-{{ block.id }}"
+          onclick="var p=document.getElementById('v13-sg-panel-{{ block.id }}');var open=p.hidden;p.hidden=!open;this.setAttribute('aria-expanded',open)">
+    {{ 'button' | t }}
+  </button>
+
+  <div class="v13-sg__panel" id="v13-sg-panel-{{ block.id }}" hidden>
+    <h3>{% if block.settings.heading != blank %}{{ block.settings.heading }}{% else %}{{ 'title' | t }}{% endif %}</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'size' | t }}</th>
+          <th>{{ col_a | t }} ({{ 'cm' | t }})</th>
+          {%- if col_b != blank -%}<th>{{ col_b | t }} ({{ 'cm' | t }})</th>{%- endif -%}
+        </tr>
+      </thead>
+      <tbody>
+        {%- for row in rows_list -%}
+          {%- assign cells = row | split: '|' -%}
+          <tr>
+            <td><strong>{{ cells[0] }}</strong></td>
+            <td>{{ cells[1] }}</td>
+            {%- if col_b != blank -%}<td>{{ cells[2] }}</td>{%- endif -%}
+          </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+    <p class="v13-sg__note">{% if block.settings.fit_note != blank %}{{ block.settings.fit_note }}{% else %}{{ 'note' | t }}{% endif %}</p>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V13 Size Guide",
+  "target": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "chart",
+      "label": "Chart",
+      "default": "shorts",
+      "options": [
+        { "value": "shorts", "label": "Fight shorts" },
+        { "value": "top", "label": "Rash guard / tee / hoodie" }
+      ]
+    },
+    { "type": "text", "id": "heading", "label": "Heading override" },
+    { "type": "text", "id": "fit_note", "label": "Fit note override" }
+  ]
+}
+{% endschema %}
