@@ -16,12 +16,37 @@ export type ParsedImport = {
   errors: string[];
 };
 
-const REQUIRED = ["title", "price"] as const;
+export type SupplierOptions = {
+  markupPercent: number;
+  round99: boolean;
+  columnMap: Record<string, string>;
+};
 
-export function parseProductCsv(text: string): ParsedImport {
+const norm = (h: string) => h.trim().toLowerCase().replace(/\s+/g, "_");
+
+// Retail = cost * (1 + markup%), optionally rounded up to the next x.99.
+export function applyMarkup(
+  cost: number,
+  markupPercent: number,
+  round99: boolean,
+): string {
+  const raw = cost * (1 + markupPercent / 100);
+  const price = round99 ? Math.max(Math.ceil(raw) - 0.01, 0.99) : raw;
+  return price.toFixed(2);
+}
+
+export function parseProductCsv(
+  text: string,
+  supplier?: SupplierOptions,
+): ParsedImport {
+  // Supplier column map is { ourField: "Their Header" }; invert it by header.
+  const reverse: Record<string, string> = {};
+  for (const [ours, theirs] of Object.entries(supplier?.columnMap ?? {})) {
+    reverse[norm(theirs)] = ours;
+  }
   const records: Record<string, string>[] = parse(text, {
     columns: (header: string[]) =>
-      header.map((h) => h.trim().toLowerCase().replace(/\s+/g, "_")),
+      header.map((h) => reverse[norm(h)] ?? norm(h)),
     skip_empty_lines: true,
     trim: true,
     bom: true,
@@ -33,17 +58,22 @@ export function parseProductCsv(text: string): ParsedImport {
 
   records.forEach((r, i) => {
     const line = i + 2;
-    const missing = REQUIRED.filter((k) => !r[k]);
+    // With a supplier, the price column is wholesale cost and retail is derived.
+    const costField = r.cost || (supplier ? r.price : "");
+    const required = supplier ? ["title", "cost"] : ["title", "price"];
+    const present = { ...r, cost: costField };
+    const missing = required.filter((k) => !present[k as keyof typeof present]);
     if (missing.length) {
       errors.push(`Line ${line}: missing ${missing.join(", ")}`);
       return;
     }
-    if (Number.isNaN(Number(r.price)) || Number(r.price) < 0) {
-      errors.push(`Line ${line}: invalid price "${r.price}"`);
+    const costNum = costField ? Number(costField) : NaN;
+    if (costField && (Number.isNaN(costNum) || costNum < 0)) {
+      errors.push(`Line ${line}: invalid cost "${costField}"`);
       return;
     }
-    if (r.cost && Number.isNaN(Number(r.cost))) {
-      errors.push(`Line ${line}: invalid cost "${r.cost}"`);
+    if (!supplier && (Number.isNaN(Number(r.price)) || Number(r.price) < 0)) {
+      errors.push(`Line ${line}: invalid price "${r.price}"`);
       return;
     }
     rows.push({
@@ -51,8 +81,10 @@ export function parseProductCsv(text: string): ParsedImport {
       description: r.description ?? "",
       vendor: r.vendor ?? "",
       sku: r.sku ?? "",
-      price: Number(r.price).toFixed(2),
-      cost: r.cost ? Number(r.cost).toFixed(2) : "",
+      price: supplier
+        ? applyMarkup(costNum, supplier.markupPercent, supplier.round99)
+        : Number(r.price).toFixed(2),
+      cost: costField ? costNum.toFixed(2) : "",
       image_url: r.image_url ?? "",
       tags: r.tags ?? "",
     });
@@ -100,3 +132,20 @@ export const PRODUCT_SET = `#graphql
       userErrors { field message code }
     }
   }`;
+
+export const FIND_VARIANT_BY_SKU = `#graphql
+  query FindVariantBySku($q: String!) {
+    productVariants(first: 1, query: $q) {
+      nodes { id sku product { id } }
+    }
+  }`;
+
+export const UPDATE_VARIANT = `#graphql
+  mutation UpdateVariantPrice($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+    productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+      productVariants { id price }
+      userErrors { field message code }
+    }
+  }`;
+
+export const skuQuery = (sku: string) => `sku:"${sku.replace(/["\\]/g, "")}"`;

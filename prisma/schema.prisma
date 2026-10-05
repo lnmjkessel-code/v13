@@ -39,9 +39,22 @@ model ImportJob {
   filename  String
   total     Int      @default(0)
   created   Int      @default(0)
+  updated   Int      @default(0)
   failed    Int      @default(0)
   errors    String?
   createdAt DateTime @default(now())
 
   @@index([shop, createdAt])
+}
+
+model Supplier {
+  id            String   @id @default(cuid())
+  shop          String
+  name          String
+  markupPercent Float    @default(100)
+  round99       Boolean  @default(true)
+  columnMap     String?
+  createdAt     DateTime @default(now())
+
+  @@unique([shop, name])
 }
